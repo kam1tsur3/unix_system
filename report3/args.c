@@ -5,17 +5,17 @@ int search_token(int argc, char** argv){
 	int i;
 
 	for(i = 0; i < argc; i++){
-		if(!strcmp(p_argv[i], "|")){
-
+		if(!strcmp(argv[i], "|")){
+			return i;
 		}
-		else if(!strcmp(p_argv[i], ">")){
-
+		else if(!strcmp(argv[i], ">")){
+			return (ARG_SIZE+i);
 		}
 	}
 	return -1;
 }
 
-void analysys_args(char** p_argv, char* buf){
+int analysys_args(char** p_argv, char* buf){
 	
 	char* tmp_addr;
 	int i;
@@ -24,7 +24,7 @@ void analysys_args(char** p_argv, char* buf){
 	tmp_addr = strchr(buf, '\n');
 	if(tmp_addr != NULL)
 		*tmp_addr = 0;
-	
+//if *buf == 0x00....	
 	for(i = 1, tmp_addr = buf; i < ARG_SIZE - 1; i++){
 		tmp_addr = strchr(tmp_addr, ' ');
 		if(tmp_addr == NULL)break;
@@ -36,4 +36,6 @@ void analysys_args(char** p_argv, char* buf){
 		}
 		p_argv[i] = tmp_addr;
 	}
+
+	return i;
 }
