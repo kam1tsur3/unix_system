@@ -48,6 +48,54 @@ int main(int argc, char** argv)
 					wait(status);
 				}
 			}
+			else if(index >= 3*ARG_SIZE){
+				// < 
+				if((pid = fork()) < 0){
+					perror("fork");
+					exit(1);
+				}
+				else if(pid == 0){
+					index -= 3*ARG_SIZE;
+					fd = open(p_argv[index+1], O_RDONLY);
+					if(fd == -1){
+						perror("open");
+						exit(1);
+					}
+					close(0);
+					dup(fd);
+
+					p_argv[index] = NULL;
+					execvp(p_argv[0], p_argv);
+					exit(0);
+				}
+				else{
+					wait(status);
+				}
+			}
+			else if(index >= 2*ARG_SIZE){
+				//>>
+				if((pid = fork()) < 0){
+					perror("fork");
+					exit(1);
+				}
+				else if(pid == 0){
+					index -= 2*ARG_SIZE;
+					fd = open(p_argv[index+1], O_WRONLY | O_CREAT | O_APPEND, 0644);
+					if(fd == -1){
+						perror("open");
+						exit(1);
+					}
+					close(1);
+					dup(fd);
+
+					p_argv[index] = NULL;
+					execvp(p_argv[0], p_argv);
+					exit(0);
+				}
+				else{
+					wait(status);
+				}
+			}
 			else if(index >= ARG_SIZE){
 				if((pid = fork()) < 0){
 					perror("fork");
