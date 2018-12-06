@@ -1,28 +1,54 @@
+//61602192 Iyota Shogo
 #include "report3.h"
+
+void handler(int sig)
+{
+	int i;
+	int status;
+	wait(&status);
+}
 
 int main(int argc, char** argv)
 {
 	char buf[BUF_SIZE];
+	char old_buf[BUF_SIZE];
 	int i, p_argc, index, fd, tmp_argc;
-	pid_t pid;
+	pid_t pid, sh_pid, pipe_pid;
 	char *p_argv[ARG_SIZE];
 	char *tmp_addr, *path;
 	char **tmp_argv;
-	int *status;
+	int status;
 	
 	int new_fds[2], old_fds[2];
 	int pipe_counter;
+	int bg_flag;
 
 	signal(SIGINT, SIG_IGN);
+	signal(SIGTTOU, SIG_IGN);
+	signal(SIGCHLD, SIG_IGN);
+	sh_pid = getpid();
+	memset(fg_buf, 0, BG_SIZE*sizeof(int));
+	fg_head = fg_tail = 0;
+	bg_counter = 0;
+
 	while(1)
 	{
-		putchar('$');
 		memset(buf, 0, BUF_SIZE);
+		memset(old_buf, 0, BUF_SIZE);
 		for(i = 0; i < ARG_SIZE; i++)
 			p_argv[i] = NULL;
-		fgets(buf, BUF_SIZE - 1, stdin);
-			
+		
+		putchar('$');
+		fgets(old_buf, BUF_SIZE - 1, stdin);
+		rebuf(old_buf, buf);
 		p_argc = analysys_args(p_argv, buf);
+		if(!strcmp(p_argv[p_argc-1], "&")){
+			bg_flag = 1;
+			p_argv[p_argc-1] = NULL;
+			p_argc--;
+		}
+		else
+			bg_flag = 0;
 
 		if(!strcmp(p_argv[0], "cd")){
 			if(p_argc < 2){
@@ -54,6 +80,11 @@ int main(int argc, char** argv)
 							dup(old_fds[0]);
 							close(old_fds[0]);
 							close(old_fds[1]);
+							setpgid(pid, pipe_pid);
+						}
+						else{
+							pid = getpid();
+							setpgid(pid, pid);
 						}
 						signal(SIGINT, SIG_DFL);
 						myexec(tmp_argc, tmp_argv);
@@ -64,8 +95,19 @@ int main(int argc, char** argv)
 							close(old_fds[0]);
 							close(old_fds[1]);
 						}
-						for(i = 0; i <= pipe_counter; i++)
-							wait(status);
+						if(bg_flag == 1){
+							fd = open("/dev/tty", O_RDWR);
+							tcsetpgrp(fd, sh_pid);
+							bg_counter = pipe_counter;
+							break;
+						}
+						else{
+							fg_buf[fg_tail] = pid;
+							fg_tail = (fg_tail + 1) % FG_SIZE;
+						}
+						for(i = 0; i <= pipe_counter; i++){
+							wait(&status);
+						}
 						break;	
 					}	
 				}
@@ -81,7 +123,12 @@ int main(int argc, char** argv)
 							dup(old_fds[0]);
 							close(old_fds[0]);
 							close(old_fds[1]);
+							setpgid(pid, pipe_pid);
 						}
+						else{
+							pid = getpid();
+							setpgid(pid, pid);
+						}	
 						tmp_argv[index] = NULL;
 						close(1);
 						dup(new_fds[1]);
@@ -92,10 +139,17 @@ int main(int argc, char** argv)
 						exit(0);
 					}
 					else{
+						if(bg_flag != 1){
+							fg_buf[fg_tail] = pid;
+							fg_tail = (fg_tail + 1) % FG_SIZE;
+						}
 						if(pipe_counter > 0){
 							close(old_fds[0]);
 							close(old_fds[1]);
 						}
+						else
+							pipe_pid = pid;
+							
 						old_fds[0] = new_fds[0];
 						old_fds[1] = new_fds[1];
 						
@@ -108,7 +162,7 @@ int main(int argc, char** argv)
 					if(pipe_counter > 0){
 						close(old_fds[0]);
 						close(old_fds[1]);
-						wait(status);
+						wait(&status);
 					}
 					printf("syntax error\n");
 					break;
