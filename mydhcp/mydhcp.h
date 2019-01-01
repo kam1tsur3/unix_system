@@ -10,7 +10,7 @@
 #define	PAIR_MAX	50
 #define CLIENT_MAX	50
 #define MYPORT		51230
-#define TIMEOUT		10
+#define TIMEOUT		5	
 struct ip_pair{
 	struct ip_pair *fp;
 	struct ip_pair *bp;

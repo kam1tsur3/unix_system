@@ -1,5 +1,9 @@
 #include "mydhcp.h"
 
+struct ip_pair free_head;
+struct client used_head;
+int sub_sd;
+
 int main(int argc, char **argv)
 {
 	FILE *cfd;
@@ -13,8 +17,6 @@ int main(int argc, char **argv)
 	struct sockaddr_in cl_sock;
 	socklen_t sktlen;
 	struct ip_pair pair_list[PAIR_MAX];
-	struct ip_pair free_head;
-	struct client used_head;
 	struct client *tmp_client;
 	struct timeval timeout;
 	
@@ -54,6 +56,7 @@ int main(int argc, char **argv)
 		perror("socket");
 		exit(1);
 	}
+	sub_sd = sd;
 	memset(&myskt, 0, sizeof(myskt));
 	myskt.sin_family = AF_INET;
 	myskt.sin_port = htons(MYPORT);
@@ -104,7 +107,7 @@ int main(int argc, char **argv)
 				*((short *)&s_buf[2]) = t_limit;
 				*((in_addr_t *)&s_buf[4]) = tmp_client->addr.s_addr;
 				*((in_addr_t *)&s_buf[8]) = tmp_client->netmask.s_addr;
-				
+				sleep(1);
 				sendto(sd, s_buf, 100, 0, (struct sockaddr *)&cl_sock, sizeof(cl_sock));
 					
 				printf("Send OFFER Code=0\n");
