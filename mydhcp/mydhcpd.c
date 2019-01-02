@@ -4,47 +4,11 @@ struct ip_pair free_head;
 struct client used_head;
 int sd;
 struct sockaddr_in cl_sock;
-
 void alrm_handler()
 {
-	char s_buf[100];
-	memset(s_buf, 0, 100);
 	struct client *tmp;
-	for(tmp = used_head.fp; tmp != &used_head; tmp = tmp->fp){
+	for(tmp = used_head.fp; tmp != &used_head; tmp = tmp->fp)
 		tmp->ttlcounter--;
-		if(tmp->ttlcounter > 0)
-			continue;
-		printf("------------------------------\n");
-		switch(tmp->status){
-			case 1:
-				s_buf[0] = '\x02';
-				s_buf[1] = '\x00';
-				*((short *)&s_buf[2]) = tmp->ttl;
-				*((in_addr_t *)&s_buf[4]) = tmp->addr.s_addr;
-				*((in_addr_t *)&s_buf[8]) = tmp->netmask.s_addr;
-				//Send OFFER Code = 0
-				sendto(sd, s_buf, 100, 0, (struct sockaddr *)&cl_sock, sizeof(cl_sock));
-				printf("Send OFFER Code=0 (again)\n\n");
-
-				tmp->status = 2;
-				tmp->ttlcounter = tmp->ttl;
-				printf("Client %s:REQUEST wait -> REQUEST wait2\n\n", inet_ntoa(tmp->id));
-				break;	
-			case 2:
-				printf("Timeout (REQUEST wait)\n\n");
-				printf("Client %s:REQUEST wait2 -> EXIT\n\n", inet_ntoa(tmp->id));
-				addpair_tail(&free_head, tmp->given);
-				//rmclient(tmp);
-				break;	
-			case 3:
-				printf("Expire on time\n\n");
-				printf("Client %s:IP DISTRIBUTE -> EXIT\n\n", inet_ntoa(tmp->id));
-				addpair_tail(&free_head, tmp->given);
-				rmclient(tmp);
-				break;
-			
-		}
-	}
 }
 
 int main(int argc, char **argv)
@@ -259,3 +223,4 @@ int main(int argc, char **argv)
 	}
 	return 0;
 }
+
