@@ -193,7 +193,6 @@ int main(int argc, char **argv)
 								memset(s_buf, 0, DATASIZE);
 								header.type = 0x20;
 								header.length = read(fd, s_buf, DATASIZE);
-								printf("read %hd\n", header.length);
 								if(header.length == DATASIZE)
 									header.code = 0x01;
 								else 
