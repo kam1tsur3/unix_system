@@ -10,6 +10,10 @@ int main(int argc, char **argv)
 	struct myftph header;
 	char s_buf[PACKSIZE], r_buf[PACKSIZE];
 	char *ls_list[4] = {"/bin/ls", "-l", NULL, NULL};
+	
+	if(argc > 1)
+		chdir(argv[1]);	
+		
 	if((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0){
 		perror("socket");
 		exit(1);
@@ -30,7 +34,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	s_len = sizeof(c_sock);
-	
+	printf("****** Run FTP server ******\n");	
 	while(1){	
 		if((sub_sd = accept(sd, (struct sockaddr *)&c_sock, &s_len)) < 0){
 			perror("accept");
