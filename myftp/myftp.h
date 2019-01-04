@@ -20,7 +20,7 @@
 #define MYPORT		50021
 #define ARG_SIZE	50
 #define BUF_SIZE	100		
-#define TMPFILE "tmpfile"
+#define TMPFILE ".tmpfile"
 struct myftph {
 	uint8_t type;
 	uint8_t code;
